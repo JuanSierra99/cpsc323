@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------------------------------
-//  Group Name: 
+//  Group Names: 
 //  Assignment: No 1
 //  Due Date: 2/2/2023
 //  Purpose: This program reads an expression in postfix form, evaluates the expression,
@@ -18,7 +18,7 @@
 
         for(int i = 0; i < expression.length()-1; i++)
         {
-            // Converts the string characters into numbers
+            // Creates the stack of numbers only
             if(expression[i] == 'a')
                 numStack.push(5);
             else if (expression[i] == 'b')
@@ -39,13 +39,13 @@
                 // makes the operator perform its operation
                 switch (expression[i]) {
                     case '+':
-                        numStack.push(num1 + num2); break;
+                        numStack.push(num2 + num1); break;
                     case '-':
-                        numStack.push(num1 - num2); break;
+                        numStack.push(num2 - num1); break;
                     case '*':
-                        numStack.push(num1 * num2); break;
+                        numStack.push(num2 * num1); break;
                     case '/':
-                        numStack.push(num1 / num2); break;
+                        numStack.push(num2 / num1); break;
                     case '$': break;
                 }
             }
@@ -57,9 +57,9 @@
 int main() {
     int result = 0;
     std::string expression;
-    std::string next;
+    std::string continuee;
     
-    while(next != "n")
+    while(continuee != "n")
     {
         // Input - gets the expression input by the user
         std::cout << "Enter a postfix expression with $ at the end: ";
@@ -72,7 +72,7 @@ int main() {
         std::cout << "\tValue = " << result << std::endl;
         
         std::cout << "CONTINUE(y/n)? ";
-        getline(std::cin, next);
+        getline(std::cin, continuee);
     }
     return 0;
 }
