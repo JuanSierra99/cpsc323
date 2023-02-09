@@ -13,49 +13,51 @@
 //---------------------------------------------------------------------------------------------------
     int postfixCalc(char expression[])
 {
+        int value = 0;  // to store value of variables in expression
         char* token = strtok(expression, " ");
-        while (token != NULL)
+        std::stack<int> numStack;
+        while (token != NULL && token[0]!='$')
         {
-            std::cout << token << std::endl;
+            // std::cout << token << std::endl;
+            if (isalpha(token[0])){
+                std::cout << "Enter the value for " << token << " ";
+                std::cin >> value;
+                numStack.push(value);
+            }
+            else if (isdigit(token[0])){
+                numStack.push(std::stoi(token));
+            }
+            else{
+                // Assigns the top of the stack into a variable to use it mathematically and then pops it
+                int num1 = numStack.top();
+                numStack.pop();
+
+                // Assigns the new top of the into a variable to use it mathematically and then pops it
+                int num2 = numStack.top();
+                numStack.pop();
+                
+                // makes the operator perform its operation
+                switch (token[0]) {
+                    case '+':
+                        numStack.push(num2 + num1); break;
+                    case '-':
+                        numStack.push(num2 - num1); break;
+                    case '*':
+                        numStack.push(num2 * num1); break;
+                    case '/':
+                        numStack.push(num2 / num1); break;
+                    case '$': 
+                        break; }
+            }
             token = strtok(NULL, " ");
         }
-        return 0;
-        // std::stack<int> numStack;
-        // for(int i = 0; i < expression.length()-1; i++)
-        // {
-        //     // Creates the stack of numbers only
-        //     if(expression[i] == 'a')       numStack.push(5);
-        //     else if (expression[i] == 'b') numStack.push(7);
-        //     else if (expression[i] == 'c') numStack.push(2);
-        //     else if (expression[i] == 'd') numStack.push(4);
-        // else{
-        //         // Assigns the top of the stack into a variable to use it mathematically and then pops it
-        //         int num1 = numStack.top();
-        //         numStack.pop();
-
-        //         // Assigns the new top of the into a variable to use it mathematically and then pops it
-        //         int num2 = numStack.top();
-        //         numStack.pop();
-                
-        //         // makes the operator perform its operation
-        //         switch (expression[i]) {
-        //             case '+':
-        //                 numStack.push(num2 + num1); break;
-        //             case '-':
-        //                 numStack.push(num2 - num1); break;
-        //             case '*':
-        //                 numStack.push(num2 * num1); break;
-        //             case '/':
-        //                 numStack.push(num2 / num1); break;
-        //             case '$': break; }
-        //     }
-        // }
-        // return numStack.top();
+        return numStack.top();
 }
 //---------------------------------------------------------------------------------------------------
 int main() {
     int result = 0;
-    char expression[] = "20 jerry 45 + tom - * $";
+    // char expression[] = "20 jerry 45 + tom - * $";
+    char expression[] = "myscore yourscore 45 + 100 + * $";
     std::string next;
     
     while(next != "n")
@@ -63,7 +65,7 @@ int main() {
         // Input - gets the expression input by the user
         std::cout << "Enter a postfix expression with $ at the end: ";
         std::cout << expression << std::endl; 
-        std::cin.ignore(10000,'\n');
+        // std::cin.ignore(10000,'\n');
         
         // Processing - calculates the postfix expression
         result = postfixCalc(expression);
