@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------------------------
 //  Group Name: Carlos Mora, Juan Sierra, Juli Nazzario
-//  Assignment: No 1
-//  Due Date: 2/2/2023
+//  Assignment: No 2
+//  Due Date: 2/08/2023
 //  Purpose: This program reads in a postfix expression, evaluates the expression, and displays its value
 //---------------------------------------------------------------------------------------------------
 #include <iostream>
@@ -11,10 +11,10 @@
 #include <stack>
 
 //---------------------------------------------------------------------------------------------------
-    int postfixCalc(char expression[])
+    int postfixCalc(const char* expression)
 {
         int value = 0;  // to store value of variables in expression
-        char* token = strtok(expression, " ");
+        char* token = std::strtok(const_cast<char*>(expression), " ");
         std::stack<int> numStack;
         while (token != NULL && token[0]!='$')
         {
@@ -46,7 +46,7 @@
                         numStack.push(num2 * num1); break;
                     case '/':
                         numStack.push(num2 / num1); break;
-                    case '$': 
+                    case '$':
                         break; }
             }
             token = strtok(NULL, " ");
@@ -56,20 +56,19 @@
 //---------------------------------------------------------------------------------------------------
 int main() {
     int result = 0;
-    // char expression[] = "20 jerry 45 + tom - * $";
-    char expression[] = "myscore yourscore 45 + 100 + * $";
+    std::string expression;
     std::string next;
     
     while(next != "n")
     {
         // Input - gets the expression input by the user
         std::cout << "Enter a postfix expression with $ at the end: ";
-        std::cout << expression << std::endl; 
-        // std::cin.ignore(10000,'\n');
+        std::getline(std::cin, expression);
         
         // Processing - calculates the postfix expression
-        result = postfixCalc(expression);
+        result = postfixCalc(expression.c_str());
         std::cout << "\tValue = " << result << std::endl;
+        std::cin.ignore(100000, '\n');
         
         std::cout << "CONTINUE(y/n)? ";
         getline(std::cin, next);
