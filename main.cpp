@@ -1,68 +1,86 @@
 //---------------------------------------------------------------------------------------------------
 //  Group Name: Carlos Mora, Juan Sierra, Juli Nazzario
-//  Assignment: No 1
-//  Due Date: 2/2/2023
-//  Purpose: This program reads in a postfix expression, evaluates the expression, and displays its value
+//  Assignment: No 5
+//  Due Date: 3/02/2023
+//  Purpose: This program reads an input file, removes any extra spaces and comments, and outputs it to a new file
 //---------------------------------------------------------------------------------------------------
-#include <iostream>
-#include <istream>
-#include <string>
-#include <stack>
-//---------------------------------------------------------------------------------------------------
-    int postfixCalc(std::string expression)
-{
-        std::stack<int> numStack;
-        for(int i = 0; i < expression.length()-1; i++)
-        {
-            // Creates the stack of numbers only
-            if(expression[i] == 'a')       numStack.push(5);
-            else if (expression[i] == 'b') numStack.push(7);
-            else if (expression[i] == 'c') numStack.push(2);
-            else if (expression[i] == 'd') numStack.push(4);
-        else{
-                // Assigns the top of the stack into a variable to use it mathematically and then pops it
-                int num1 = numStack.top();
-                numStack.pop();
 
-                // Assigns the new top of the into a variable to use it mathematically and then pops it
-                int num2 = numStack.top();
-                numStack.pop();
-                
-                // makes the operator perform its operation
-                switch (expression[i]) {
-                    case '+':
-                        numStack.push(num2 + num1); break;
-                    case '-':
-                        numStack.push(num2 - num1); break;
-                    case '*':
-                        numStack.push(num2 * num1); break;
-                    case '/':
-                        numStack.push(num2 / num1); break;
-                    case '$': break; }
-            }
-        }
-        return numStack.top();
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <sstream>
+
+//---------------------------------------------------------------------------------------------------------------------------------
+bool isComment(std::string line){
+    return line.find("**") != std::string::npos;
 }
-//---------------------------------------------------------------------------------------------------
-int main() {
-    int result = 0;
-    std::string expression;
-    std::string next;
-    
-    while(next != "n")
-    {
-        // Input - gets the expression input by the user
-        std::cout << "Enter a postfix expression with $ at the end: ";
-        std::cin  >> expression;
-        std::cin.ignore(10000,'\n');
-        
-        // Processing - calculates the postfix expression
-        result = postfixCalc(expression);
-        
-        std::cout << "\tValue = " << result << std::endl;
-        
-        std::cout << "CONTINUE(y/n)? ";
-        getline(std::cin, next);
+
+std::string removeSpaces(std::string line){
+    std::string afterSpaces;
+    bool prevSpace = false;
+    for (int i = 0; i< line.length(); i++){
+        if(line[i] == ' '){
+            if(!prevSpace) afterSpaces += ' ';
+
+            prevSpace = true;
+        } else {
+            afterSpaces += line[i];
+            prevSpace = false;
+        }
     }
+
+    return afterSpaces;
+}
+
+std::vector<std::string> tokenization(std::string line){
+    std::vector<std::string> tokens;
+    std::string current;
+
+    for(int i = 0; i< line.length();i++)
+    {
+        if(line[i] == ' ' || line[i] == '\n' || line[i] == 'r' || line[i] == '\t' || line[i] == '*'){
+            if(!current.empty()){
+                tokens.push_back(current);
+                current.clear();
+            }
+        }else current += line[i];
+    
+        if(!current.empty()) tokens.push_back(current);
+
+    }
+
+    return tokens;
+
+}
+
+int main() {
+    std::ifstream fin;
+    std::ofstream fout;
+    std::string line;
+    std::vector<std::string> fileContents;
+    
+    fin.open("h5.txt");
+    fout.open("newh5.txt");
+
+    
+    while(std::getline(fin, line)){
+        if(!isComment(line)){
+            std::string tokenizedLine = removeSpaces(line);
+            std::vector<std::string> tokens = tokenization(tokenizedLine);
+
+            for(std::string token : tokens){
+                fout << token << " ";
+            }
+
+        fout << std::endl;
+
+        }
+    }
+    
+    fin.close();
+    fout.close();
+    
+    
     return 0;
 }
