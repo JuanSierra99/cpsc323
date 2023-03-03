@@ -1,10 +1,7 @@
-v va va 
-t to tom tom , , j je je y y : : i in int inte integ intege intege ; 
-b be beg begi begin 
-t to tom tom = = 3 3 ; 
-j je je y y = = 4 4 ; 
-
-
-
-j je je y y = = t to tom tom + + j je je y y ; 
-e en end end. 
+ var
+     tom , jerry : integer ;
+ begin
+     tom = 3 ;
+     jerry = 4 ;
+     jerry = tom + jerry ;
+ end.

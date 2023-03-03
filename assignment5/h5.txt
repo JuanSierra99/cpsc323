@@ -6,7 +6,7 @@
          begin
                   tom               = 3 ;
                   jerry =          4 ;
-                 
+
             write(   tom );  ** display tom **
 
 
