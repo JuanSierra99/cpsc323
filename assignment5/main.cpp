@@ -33,26 +33,6 @@ std::string removeSpaces(std::string line){
     return afterSpaces;
 }
 
-std::vector<std::string> tokenization(std::string line){
-    std::vector<std::string> tokens;
-    std::string current;
-
-    for(int i = 0; i< line.length();i++)
-    {
-        if(line[i] == ' ' || line[i] == '\n' || line[i] == 'r' || line[i] == '\t' || line[i] == '*'){
-            if(!current.empty()){
-                tokens.push_back(current);
-                current.clear();
-            }
-        }else current += line[i];
-    
-        if(!current.empty()) tokens.push_back(current);
-
-    }
-
-    return tokens;
-
-}
 
 int main() {
     std::ifstream fin;
@@ -63,16 +43,14 @@ int main() {
     fin.open("h5.txt");
     fout.open("newh5.txt");
 
-    
+    int i = 0;
     while(std::getline(fin, line)){
+        if(line.empty()){
+            continue;
+        }   
         if(!isComment(line)){
             std::string tokenizedLine = removeSpaces(line);
-            std::vector<std::string> tokens = tokenization(tokenizedLine);
-
-            for(std::string token : tokens){
-                fout << token << " ";
-            }
-
+            fout << tokenizedLine;
         fout << std::endl;
 
         }
@@ -81,6 +59,6 @@ int main() {
     fin.close();
     fout.close();
     
-    
     return 0;
 }
+
