@@ -1,8 +1,9 @@
 //---------------------------------------------------------------------------------------------------
 //  Group Name: Carlos Mora, Juan Sierra, Juli Nazzario
-//  Assignment: No 7
+//  Assignment: No 7 - Part 1
 //  Due Date: 3/23/2023
-//  Purpose: This program reads a predictive parsing table to trace if an input is valid or not given a language
+//  Purpose: This program reads a predictive parsing table to trace if 
+//  an input is valid or not given a language
 //---------------------------------------------------------------------------------------------------
 
 #include <iostream>
@@ -12,10 +13,15 @@
 #include <cstring>
 #include <stack>
 
+// Size of the predictive parsing table, update as required
+#define MAX_EXPRESSIONS 5
+#define MAX_LANGUAGE 8
+
 // Function to print a stack
 void PrintStack(std::stack<char> s);
 
-std::string parsingTable[5][8] = 
+// Predictive Parsing Table
+std::string parsingTable[MAX_EXPRESSIONS][MAX_LANGUAGE] = 
 {
     { "TQ",  "",     "",     "",    "",    "TQ",   "",     "" },
     { "",    "+TQ",  "-TQ",  "",    "",    "",     "skip", "skip" },
@@ -24,8 +30,12 @@ std::string parsingTable[5][8] =
     { "i",   "",     "",     "",    "",    "(E)",  "",     "" }
 };
 
-char expressions[5] = {'E', 'Q', 'T', 'R', 'F'};
-char language[8] = {'i', '+', '-', '*', '/', '(', ')', '$'};
+// Predicting Parsing Table Headers
+char expressions[MAX_EXPRESSIONS] = {'E', 'Q', 'T', 'R', 'F'};
+char language[MAX_LANGUAGE] = {'i', '+', '-', '*', '/', '(', ')', '$'};
+
+// Control Variable
+bool isValid = true;
 
 int main() 
 {
@@ -33,13 +43,15 @@ int main()
     std::stack<char> stack;
     int currentIndex = 0;
 
+    // Get input from user
     std::cout << "Enter a postfix expression with $ at the end: ";
     std::getline(std::cin, word);
 
     // Initialize the stack
-    stack.push(language[7]);
+    stack.push('$');
     stack.push(expressions[0]);
 
+    // While the stack is not empty
     while (!stack.empty()) 
     {
         // Get the current expression
@@ -53,50 +65,57 @@ int main()
         }
 
         // Print current stack
-        std::cout << "Stack: -> ";
-        PrintStack(stack);
-        std::cout << std::endl;
+        // std::cout << "Stack: -> ";
+        // PrintStack(stack);
+        // std::cout << std::endl;
 
         // Pop current expression from stack
         stack.pop();
-        std::cout << "POP -> " << currentExpression << std::endl;
+        // std::cout << "POP -> " << currentExpression << std::endl;
  
         // Check if currentExpression is the target expression
+        // If match, go to next iteration and search next character from word
         if (currentExpression == word[currentIndex]) 
         {
-            std::cout << "FOUND: " << word[currentIndex] << "\n";
+            std::cout << "Stack: -> ";
+            PrintStack(stack);
+            std::cout << std::endl;
+
+            std::cout << "MATCH: " << word[currentIndex] << "\n";
             currentIndex++;
             std::cout << std::endl;
             continue;
         }
         
         // Read the current expression
-        int expressionIndex = std::distance(expressions, std::find(expressions, expressions+5, currentExpression));
-        int languageIndex = std::distance(language, std::find(language, language+8, word[currentIndex]));
+        int expressionIndex = std::distance(expressions, std::find(expressions, expressions + MAX_EXPRESSIONS, currentExpression));
+        int languageIndex = std::distance(language, std::find(language, language + MAX_LANGUAGE, word[currentIndex]));
 
         // Fetch the value of the current expression in the parsing table
         std::string parsingTableResult = parsingTable[expressionIndex][languageIndex];
-        std::cout << "[" << expressions[expressionIndex] << ", " << language[languageIndex] << "] = " << parsingTableResult << "\n";
+        // std::cout << "PUSH -> " << "[" << expressions[expressionIndex] << ", " << language[languageIndex] << "] = " << parsingTableResult << "\n";
 
         // If the parsing table result is lambda (skip in this case), skip to the next iteration
         if (parsingTableResult == "skip") 
         {
-            std::cout << std::endl;
+            // std::cout << std::endl;
             continue;
         }
 
-        // If the result from the parsing table is empty
+        // If the result from the parsing table is empty, expression is invalid
         if (parsingTableResult.empty()) 
         {
-            std::cout << "Invalid Expression \n";
+            isValid = false;
             break;
-        } else 
+        } 
+        else 
         {
             // Else, Push in reverse the parsing table result expression to the stack
             if (parsingTableResult.length() == 1) 
             {
                 stack.push(parsingTableResult[0]);
-            } else 
+            } 
+            else 
             {
                 for (int i = word.length()-1; i>=0; i--) 
                 {
@@ -105,8 +124,11 @@ int main()
             }
         }
 
-        std::cout << std::endl;
+        // std::cout << std::endl;
     }
+
+    std::cout << word;
+    (isValid) ? std::cout << " Valid Expression \n\n" : std::cout << " Invalid Expression \n\n";
 
     return 0;
 }
