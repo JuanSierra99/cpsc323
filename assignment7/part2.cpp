@@ -23,18 +23,18 @@ void PrintStack(std::stack<char> s);
 // Predictive Parsing Table
 std::string parsingTable[MAX_EXPRESSIONS][MAX_LANGUAGE] = 
 {
-    { "iW", "",    "",     "",     "",    "",    "",     "",     "" },
+    { "aW", "",    "",     "",     "",    "",    "",     "",     "" },
     { "",   "=E",  "",     "",     "",    "",    "",     "",     "" },
     { "TQ", "",    "",     "",     "",    "",    "TQ",   "",     "" },
     { "",   "",    "+TQ",  "-TQ",  "",    "",    "",     "skip", "skip" },
     { "FR", "",    "",     "",     "",    "",    "FR",   "",     ""},
     { "",   "",    "skip", "skip", "*FR", "/FR", "",     "skip", "skip" },
-    { "i",  "",    "",     "",     "",    "",    "(E)",  "",     "" }
+    { "a",  "",    "",     "",     "",    "",    "(E)",  "",     "" }
 };
 
 // Predicting Parsing Table Headers
 char expressions[MAX_EXPRESSIONS] = {'S','W','E', 'Q', 'T', 'R', 'F'};
-char language[MAX_LANGUAGE] = {'i', '=', '+', '-', '*', '/', '(', ')', '$'};
+char language[MAX_LANGUAGE] = {'a', '=', '+', '-', '*', '/', '(', ')', '$'};
 
 // Control Variable
 bool isValid = true;
