@@ -13,8 +13,8 @@
 #include <stack>
 
 // Size of the predictive parsing table, update as required
-#define MAX_EXPRESSIONS 20
-#define MAX_LANGUAGE 29
+#define MAX_EXPRESSIONS 21
+#define MAX_LANGUAGE 30
 
 // Function to print a stack
 void PrintStack(std::stack<std::string> s);
@@ -22,36 +22,39 @@ void PrintStack(std::stack<std::string> s);
 // Predictive Parsing Table
 std::string parsingTable[MAX_EXPRESSIONS][MAX_LANGUAGE] = 
 {
-/*<prog>*/      { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "program<identifier>;var<dec-list> begin <stat-list> end.", "", "", "", "" },
-/*<identifier*/ { "", "", "", "", "", "", "", "", "", "", "<letter><X>", "<letter><X>", "<letter><X>", "<letter><X>", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<X>*/         { "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<letter><X>", "<letter><X>", "<letter><X>", "<letter><X>", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<dec-list>*/  { "", "", "", "", "", "", "", "", "", "", "<dec> : <type>;", "<dec> : <type>;", "<dec> : <type>;", "<dec> : <type>;", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<dec>*/       { "", "", "", "", "", "", "", "", "", "", "<identifier>, <dec>", "<identifier>, <dec>", "<identifier>, <dec>", "<identifier>, <dec>", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<type*/       { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "integer", "" },
-/*<stat-list*/  { "", "", "", "", "", "", "", "", "", "", "<stat><stat-list", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "<stat><stat-list>", "", "" },
-/*<stat*/       { "", "", "", "", "", "", "", "", "", "", "<assign>", "<assign>", "<assign>", "<assign>", "", "", "", "", "", "", "", "", "", "", "", "", "<write>", "", "" },
-/*<write*/      { "", "", "", "", "", "", "", "", "", "", "<identifier> = <expr>;", "<identifier> = <expr>;", "<identifier> = <expr>;", "<identifier> = <expr>;", "", "", "", "", "", "", "", "", "", "", "", "", "display(<identifier>); display(\"value\", <identifier>);", "", "" },
-/*<assign>*/    { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<expr>*/      { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<expr'>*/     { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*term>*/       { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<term'*/      { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<factor*/     { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<Y>*/         { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<number>*/    { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<sign>*/      { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<digit>*/     { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
-/*<letter*/     { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" }
+/*<prog>*/      { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "program <identifier>; var <dec-list> begin <stat-list> end.", "", "", "", "" },
+/*<identifier*/ { "", "", "", "", "", "", "", "", "", "", "<letter><X>", "<letter><X>", "<letter><X>", "<letter><X>", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
+/*<X>*/         { "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<digit><X>", "<letter><X>", "<letter><X>", "<letter><X>", "<letter><X>", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "", "NULL", "NULL", "", "", "", "", "", "" },
+/*<dec-list>*/  { "", "", "", "", "", "", "", "", "", "", "<dec> : <type>;", "<dec> : <type>;", "<dec> : <type>;", "<dec> : <type>;", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
+/*<dec>*/       { "", "", "", "", "", "", "", "", "", "", "<identifier>, <dec>", "<identifier>, <dec>", "<identifier>, <dec>", "<identifier>, <dec>", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
+/*<D>*/         { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "NULL", "", "", ",<dec>", "", "", "", "", "", "", "" },
+/*<type*/       { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "integer", "" },
+/*<stat-list*/  { "", "", "", "", "", "", "", "", "", "", "<stat><L>", "<stat><L>", "<stat><L>", "<stat><L>", "", "", "", "", "", "", "", "", "", "", "","", "", "<stat><L>", "", "" },
+/*<L>*/         { "", "", "", "", "", "", "", "", "", "", "<stat-list>", "<stat-list>", "<stat-list>", "<stat-list>", "", "", "", "", "", "", "", "", "", "", "", "", "", "<stat-list>", "", "NULL" },
+/*<stat*/       { "", "", "", "", "", "", "", "", "", "", "<assign>", "<assign>", "<assign>", "<assign>", "", "", "", "", "", "", "", "", "", "", "", "", "", "<write>", "", "" },
+/*<write*/      { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "display(<identifier>); display(\"value\", <identifier>);", "", "" },
+/*<W>*/         { "", "", "", "", "", "", "", "", "", "", "NULL", "NULL", "NULL", "NULL", "", "", "", "", "", "", "", "", "", "", "“value”,", "", "", "", "", "" },
+/*<assign>*/    { "", "", "", "", "", "", "", "", "", "", "<identifier> = <expr>;", "<identifier> = <expr>;", "<identifier> = <expr>;", "<identifier> = <expr>;", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
+/*<expr>*/      { "<term><expr’>", "<term><expr’>", "<term><expr’>", "<term><expr’>", "<term><expr’>", "<term><expr’>", "<term><expr’>", "<term><expr’>", "<term><expr’>", "<term><expr’>", "<term><expr’>", "<term><expr’>", "<term><expr’>", "<term><expr’>", "", "", "<term><expr’>", "<term><expr’>", "", "", "", "<term><expr’>", "", "", "", "", "", "", "", "" },
+/*<expr'>*/     { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "-<term><expr’> ", "-<term><expr’> ", "NULL", "", "", "", "", "NULL", "", "", "", "", "", "" },
+/*term>*/       { "<factor><term’>", "<factor><term’>", "<factor><term’>", "<factor><term’>", "<factor><term’>", "<factor><term’>", "<factor><term’>", "<factor><term’>", "<factor><term’>", "<factor><term’>", "<factor><term’>", "<factor><term’>", "<factor><term’>", "<factor><term’>", "", "", "<factor><term’>", "<factor><term’>", "", "", "", "<factor><term’>", "", "", "", "", "", "", "", "" },
+/*<term'*/      { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "/<factor><term’> ", "*<factor><term’> ", "NULL", "NULL", "NULL", "", "", "", "", "NULL", "", "", "", "", "", "" },
+/*<factor*/     { "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", " <identifier>", " <identifier>", " <identifier>", " <identifier>", "", "", "<number>", "<number>", "", "", "", "(<expr>)", "", "", "", "", "", "", "", "" },
+/*<number>*/    { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "<sign><digit><Y>", "<sign><digit><Y>", "", "", "", "", "", "", "", "", "", "", "", "" },
+/*<Y>*/         { "<digit><Y>", "<digit><Y>", "<digit><Y>", "<digit><Y>", "<digit><Y>", "<digit><Y>", "<digit><Y>", "<digit><Y>", "<digit><Y>", "<digit><Y>", "", "", "", "", "NULL", "NULL", "NULL", "NULL", "NULL", "", "", "", "", "NULL", "", "", "", "", "", "" },
+/*<sign>*/      { "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "", "", "", "", "", "", "+", "-", "", "", "", "", "", "", "", "", "", "", "", "" },
+/*<digit>*/     { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
+/*<letter*/     { "", "", "", "", "", "", "", "", "", "", "p", "q", "r", "s", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" },
 };
 
 // Predicting Parsing Table Headers
-std::string expressions[MAX_EXPRESSIONS] = {"<prog>", "<identifier>", "<X>", "<dec-list>", "<dec>","<type>",
-                                            "<stat-list>","<stat>", "<write>", "<assign>", "<expr", "<expr>'",
-                                            "<term>", "<factor>", "<Y>", "<number>", "<sign>", "<digit>", "<letter>"};
+std::string expressions[MAX_EXPRESSIONS] = {"<prog>", "<identifier>", "<X>", "<dec-list>", "<dec>", "<D>", "<type>",
+                                            "<stat-list>","<L>", "<stat>", "<write>", "<W>" "<assign>", "<expr", "<expr>'",
+                                            "<term>", "<factor>", "<number>", "<Y>", "<sign>", "<digit>", "<letter>"};
 
 std::string language[MAX_LANGUAGE] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
                                       "p", "q", "r", "s", "/", "*", "+", "-", ";", ":", 
-                                      "=", "(", ",", ")", "program", "begin", "display",
+                                      "=", "(", ",", ")", "\"", "program", "begin", "display",
                                       "integer", "end."};
 
 // Control Variable
