@@ -13,7 +13,7 @@
 #include <stack>
 
 // Size of the predictive parsing table, update as required
-#define MAX_EXPRESSIONS 21
+#define MAX_EXPRESSIONS 23
 #define MAX_LANGUAGE 30
 
 // Function to print a stack
