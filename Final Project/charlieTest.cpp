@@ -25,43 +25,82 @@ std::vector<std::string> ParsingTableTokenizer(std::string s);
 // Predictive Parsing Table
 std::string parsingTable[MAX_EXPRESSIONS][MAX_LANGUAGE] = 
 {
-    {"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "program <identifier> ; var <dec-list> begin"},
-    {"", "", "", "", "", "", "", "", "", "", "<letter> <X>", "<letter> <X>", "<letter> <X>", "<letter> <X>", "", "", "", "", ""},
-    {"", "", "", "", "", "", "", "", "", "", "<dec> : <type> ;", "<dec> : <type> ;", "<dec> : <type> ;", "<dec> : <type> ;", "", "", "", "", ""},
-    {"", "", "", "", "", "", "", "", "", "", "<id> <D>", "<id> <D>", "<id> <D>", "<id> <D>", "", "", "", "", ""},
-    {"", "", "", "", "", "", "", "", "", "", "", "", "", "", ", <dec>", " NULL", "", "", ""},
-    {"", "", "", "", "", "", "", "", "", "", "<letter> <X>", "<letter> <X>", "<letter> <X>", "<letter> <X>", "", "", "", "", ""},
-    {"<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<letter> <X>", "<letter> <X>", "<letter> <X>", "<letter> <X>", "NULL", "NULL", "NULL", "NULL", ""},
-    {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "", "", "", "", "", "", "", "", ""},
-    {"", "", "", "", "", "", "", "", "", "", "p", "q", "r", "s", "", "", "", "", ""},
-    {"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "int", ""}
+/* <program */      {"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "program <identifier> ; var <dec-list> begin <stat-list> end.", "", "", "", ""}, // <program>
+/* <dec-list> */    {"", "", "", "", "", "", "", "", "", "", "<dec> : <type> ;", "<dec> : <type> ;", "<dec> : <type> ;", "<dec> : <type> ;", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""}, // <dec-list>
+/* <dec> */         {"", "", "", "", "", "", "", "", "", "", "<identifier> <D>", "<identifier> <D>", "<identifier> <D>", "<identifier> <D>", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""}, // <dec>
+/* <D> */           {"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "NULL", "", "", ", <dec>", "", "", "", "", "", "", ""}, // <D>
+/* <stat-list> */   {"", "", "", "", "", "", "", "", "", "", "<stat> <L>", "<stat> <L>", "<stat> <L>", "<stat> <L>", "", "", "", "", "", "", "", "", "", "", "", "", "", "<stat> <L>", "", ""}, // <stat-list>
+/* <L> */           {"", "", "", "", "", "", "", "", "", "", "<stat-list>", "<stat-list>", "<stat-list>", "<stat-list>", "", "", "", "", "", "", "", "", "", "", "", "", "", "<stat-list>", "", "NULL"}, // <L>
+/* <stat> */        {"", "", "", "", "", "", "", "", "", "", "<assign>", "<assign>", "<assign>", "<assign>", "", "", "", "", "", "", "", "", "", "", "", "", "", "<write>", "", ""}, // <stat>
+/* <write> */       {"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "display ( <W> <identifier> ) ;", "", ""}, // <write>
+/* <W> */           {"", "", "", "", "", "", "", "", "", "", "NULL", "NULL", "NULL", "NULL", "", "", "", "", "", "", "", "", "", "", "\" value = \" ,", "", "", "", "", ""}, // <W>
+/* <assign> */      {"", "", "", "", "", "", "", "", "", "", "<identifier> = <expr> ;", "<identifier> = <expr> ;", "<identifier> = <expr> ;", "<identifier> = <expr> ;", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""}, // <assign>
+/* <expr> */        {"<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "<term> <expr'>", "", "", "<term> <expr'>", "<term> <expr'>", "", "", "", "<term> <expr'>", "", "", "", "", "", "", "", ""}, // <expr>
+/* <expr'> */       {"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "+ <term> <expr'>", "- <term> <expr'>", "NULL", "", "", "", "", "NULL", "", "", "", "", "", ""}, // <expr'>
+/* <term> */        {"<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "", "", "<factor> <term'>", "<factor> <term'>", "", "", "", "<factor> <term'>", "", "", "", "", "", "", "", ""}, // <term>
+/* <term'> */       {"", "", "", "", "", "", "", "", "", "", "", "", "", "", "/ <factor> <term'>", "* <factor> <term'>", "NULL", "NULL", "NULL", "", "", "", "", "NULL", "", "", "", "", "", ""}, // <term'>
+/* <factor> */      {"<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<identifier>", "<identifier>", "<identifier>", "<identifier>", "", "", "<number>", "<number>", "", "", "", "( <expr> )", "", "", "", "", "", "", "", ""}, // <factor>
+/* <number> */      {"<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "", "", "", "", "", "", "<sign> <digit> <Y>", "<sign> <digit> <Y>", "", "", "", "", "", "", "", "", "", "", "", ""}, // <number>
+/* <Y> */           {"<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "", "", "", "", "NULL", "NULL", "NULL", "NULL", "NULL", "", "", "", "", "NULL", "", "", "", "", "", ""}, // <Y>
+/* <sign> */        {"NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "", "", "", "", "", "", "+", "-", "", "", "", "", "", "", "", "", "", "", "", ""}, // <sign>
+/* <identifier> */  {"", "", "", "", "", "", "", "", "", "", "<letter> <X>", "<letter> <X>", "<letter> <X>", "<letter> <X>", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""}, // <identifier>
+/* <X> */           {"<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<digit> <X>", "<letter> <X>", "<letter> <X>", "<letter> <X>", "<letter> <X>", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "", "NULL", "NULL", "", "", "", "", "", "" }, // <X>
+/* <digit> */       {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""}, // <digit>
+/* <letter> */      {"", "", "", "", "", "", "", "", "", "", "p", "q", "r", "s", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""}, // <letter>
+/* <type> */        {"", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "integer", ""}, // <type>
 };      
 
 // Predicting Parsing Table Headers
-std::string language[MAX_LANGUAGE] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "p", "q", "r", "s", ",", ":", ";", "int", "program"};
+std::string language[MAX_LANGUAGE] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "p", "q", "r", "s", "/", "*", "+", "-", ";", ":", "=", "(", ",", ")", "\"", "program", "begin", "display", "integer", "end."};
 std::string expressions[MAX_EXPRESSIONS] = {
     "<program>",
-    "<identifier>",
-    "<dec-list>", 
+    "<dec-list>",
     "<dec>",
     "<D>",
-    "<id>",
+    "<stat-list>",
+    "<L>",
+    "<stat>",
+    "<write>",
+    "<W>",
+    "<assign>",
+    "<expr>",
+    "<expr'>",
+    "<term>",
+    "<term'>",
+    "<factor>",
+    "<number>",
+    "<Y>",
+    "<sign>",
+    "<identifier>",
     "<X>",
     "<digit>",
     "<letter>",
     "<type>"
 };
 
-std::string validThings[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "p", "q", "r", "s", ",", ":", ";", "int", "program", "var", "begin",
+std::string validThings[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "p", "q", "r", "s", "/", "*", "+", "-", ";", ":", "=", "(", ",", ")", "\"", "program", "begin", "display", "integer", "end.", "value", "var",
     "<program>",
+    "<dec-list>",
+    "<dec>",
+    "<D>",
+    "<stat-list>",
+    "<L>",
+    "<stat>",
+    "<write>",
+    "<W>",
+    "<assign>",
+    "<expr>",
+    "<expr'>",
+    "<term>",
+    "<term'>",
+    "<factor>",
+    "<number>",
+    "<Y>",
+    "<sign>",
     "<identifier>",
-    "<id>",
     "<X>",
     "<digit>",
     "<letter>",
-    "<dec-list>", 
-    "<dec>",
-    "<D>",
     "<type>"
 };
 
@@ -71,15 +110,20 @@ bool isValid = true;
 int main() 
 {
 
-    std::vector<std::string> newWord{"program", "p", "2", ";", "var", "p", "1", ",", "q", "2", ":", "int", ";", "begin"};
+    // TEST 1 THAT KINDA WORKS
+    /*
+        program p2;
+        var p1, q2 : integer;
+        begin
+        p1 = 33 + (2/3*2);
+        display("value=", p1);
+        end.
+    */
 
-    std::string word;
+    std::vector<std::string> newWord{"program", "p", "2", ";", "var", "p", "1", ",", "q", "2", ":", "integer", ";", "begin", "p", "1", "=", "3", "3", "+", "(", "2", "/", "3", "*", "2", ")", ";", "display", "(", "\"", "value", "=", "\"", ",", "p", "1", ")", ";", "end."};
+
     std::stack<std::string> stack;
     int currentIndex = 0;
-
-    // Get input from user
-    std::cout << "Enter a postfix expression with $ at the end: ";
-    std::getline(std::cin, word);
 
     // Initialize the stack
     // stack.push("$");
@@ -96,6 +140,7 @@ int main()
         bool isInvalidExpression = std::find(validThings, validThings + languageSize, currentExpression) == validThings + languageSize;
         if (isInvalidExpression) 
         {
+            std::cout << "INVALID -> " << currentExpression << "\n";
             stack.pop();
             continue;
         }
@@ -116,7 +161,7 @@ int main()
             std::cout << std::endl;
             currentIndex++;
 
-            std::cin.ignore(999, '\n');
+            // std::cin.ignore(999, '\n');
 
             continue;
         }
@@ -168,10 +213,9 @@ int main()
         std::cout << std::endl;
         std::cout << std::endl;
 
-        std::cin.ignore(999, '\n');
+        // std::cin.ignore(999, '\n');
     }
 
-    std::cout << word;
     (isValid) ? std::cout << " Valid Expression \n\n" : std::cout << " Invalid Expression \n\n";
 
     return 0;
