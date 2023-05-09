@@ -7,7 +7,4 @@ int main() {
 	pr = p1 + p2q;
 	std::cout << pr << std::endl;
 	pr = p1 * (p2q + 2 * pr);
-	std::cout << "value=" << pr << std::endl;
-	
-	return 0;
-}
+	std::cout << 

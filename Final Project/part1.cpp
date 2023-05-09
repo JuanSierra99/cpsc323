@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <regex>
 //---------------------------------------------------------------------------------------------------------------------------------
 
 // Check if the current line is a comment
@@ -10,6 +11,13 @@ bool isComment(std::string line){
     return line.find("//") != std::string::npos;
 }
 
+bool is_comment_start(std::string line) {
+    std::regex r("\\s+");
+    line = std::regex_replace(line, r, "");
+    std::cout << line << "\n";
+
+    return (line[0] == '/' && line[1] == '/');
+}
 
 // Remove the unused blank spaces and separate each token with only 1 space
 std::string removeSpaces(std::string line){
@@ -59,20 +67,20 @@ int main() {
         }
 
         // If the line is not comment, remove the unnecesary spaces of the line
-        if(!isComment(line)){
+        if(!is_comment_start(line)){
             std::string tokenizedLine = removeSpaces(line);
 
-        // If the line is a keyword
-        if (tokenizedLine == " var" || tokenizedLine == " begin" || tokenizedLine == " end.") {
-            // Leave as it is
-            fout << tokenizedLine;
-        } else {
-            // Add 4 spaces of indentation
-            fout << "    " << tokenizedLine;
-        }
+            // If the line is a keyword
+            if (tokenizedLine == " var" || tokenizedLine == " begin" || tokenizedLine == " end.") {
+                // Leave as it is
+                fout << tokenizedLine;
+            } else {
+                // Add 4 spaces of indentation
+                fout << "    " << tokenizedLine;
+            }
 
-        // Add an end of line
-        fout << std::endl;
+            // Add an end of line
+            fout << std::endl;
 
         }
     }

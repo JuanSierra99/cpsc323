@@ -52,6 +52,7 @@ std::vector<std::string> sourceCodeTokens;
 
 // Reserved Words List
 std::string reservedWords[] = { "var", "program", "begin", "integer", "end.", "display", "value" };
+std::string requiredWords[] = { "var", "program", "begin", "integer", "end." };
 
 // Valid Code control variable
 bool isValid = true;
@@ -152,7 +153,7 @@ int main()
     FetchSourceFile();
 
     // Look at the reserved words in check and make sure they are written in the example program. These words only show up once and must be included
-    for (auto reserved: reservedWords){
+    for (auto reserved: requiredWords){
         if (std::find(sourceCodeTokens.begin(), sourceCodeTokens.end(), reserved) == sourceCodeTokens.end()){
             std::cout << reserved << " is expected \n";
             return 0;

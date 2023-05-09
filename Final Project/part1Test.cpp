@@ -3,13 +3,13 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <regex>
 //---------------------------------------------------------------------------------------------------------------------------------
 
 // Check if the current line is a comment
-bool isComment(std::string line){
+bool contains_comment(std::string line){
     return line.find("//") != std::string::npos;
 }
-
 
 // Remove the unused blank spaces and separate each token with only 1 space
 std::string removeSpaces(std::string line){
@@ -27,7 +27,6 @@ std::string removeSpaces(std::string line){
 
     }
 
-
     for(int i = 0; i < line.length(); i++){
         if(line[i] == ' '){
             if(!prevSpace) afterSpaces += ' ';
@@ -38,16 +37,18 @@ std::string removeSpaces(std::string line){
     return afterSpaces;
 }
 
-bool is_comment_start(std::string line, size_t pos) {
-    // Check if "//" occurs at the beginning of the line or after a whitespace character
-    return (pos == 0 || isspace(line[pos - 1])) && line.find("//", pos) == pos;
+// Check if it is multiline comment
+bool is_multiline_comment(std::string line) {
+    std::regex r("\\s+");
+    line = std::regex_replace(line, r, "");
+
+    return ((line[0] == '/' && line[1] == '/') || (line[line.size()-1] == '/' && line[line.size()-2] == '/'));
 }
 
 std::string remove_comment(std::string line, size_t pos) {
     // Remove the comment starting from "//" to the end of the line
-    return line.substr(0, pos) + '\n';
+    return line.substr(0, pos);
 }
-
 
 int main() {
     std::ifstream fin;
@@ -63,19 +64,20 @@ int main() {
 
     // Get the whole line of the input file
     while(std::getline(fin, line)){
-        // If the line is empty, continue to the next iteration
-        if(line.empty()){
+        // If the line is empty or if has an inline comment start or end
+        if(line.empty() || is_multiline_comment(line)){
             continue;
         }
 
-    std::string tokenizedLine = removeSpaces(line);
-    for (int i = 0; i< tokenizedLine.length(); i++){
-        if(is_comment_start(tokenizedLine, i)){
-            tokenizedLine = remove_comment(tokenizedLine, i);
+        // Remove the whitespace from the line of code
+        std::string tokenizedLine = removeSpaces(line);
 
-    }}
+        // Check if the line of code has a 
+        if (contains_comment(tokenizedLine)) {
+            int commentPos = tokenizedLine.find_first_of("//");
+            tokenizedLine = remove_comment(tokenizedLine, commentPos);
+        }
     
-
         // If the line is a keyword
         if (tokenizedLine == " var" || tokenizedLine == " begin" || tokenizedLine == " end." || tokenizedLine == "display") {
             // Leave as it is
