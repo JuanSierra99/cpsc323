@@ -7,8 +7,9 @@
 
 // Check if the current line is a comment
 bool isComment(std::string line){
-    return line.find("**") != std::string::npos;
+    return line.find("//") != std::string::npos;
 }
+
 
 // Remove the unused blank spaces and separate each token with only 1 space
 std::string removeSpaces(std::string line){
@@ -22,6 +23,15 @@ std::string removeSpaces(std::string line){
         } else {
             afterSpaces += line[i];
             prevSpace = false;
+        }
+
+    }
+
+
+    for(int i = 0; i < line.length(); i++){
+        if(line[i] == ' '){
+            if(!prevSpace) afterSpaces += ' ';
+            prevSpace = true;
         }
     }
 
