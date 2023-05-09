@@ -253,7 +253,7 @@ int main()
             if (currentExpression == "<type>"){
                 std::cout << "integer is expected\n";
             }
-            else if (currentExpression == "<L>" && (sourceCodeTokens[currentIndex] == "(" || sourceCodeTokens[currentIndex + 1] == "(")){ // display is a FIRST of <L>, but if we get ( instead, then we know that we missed display.
+            else if (currentExpression == "<L>" && (sourceCodeTokens[currentIndex] == "(" || sourceCodeTokens[currentIndex] == "d")){ // display is a FIRST of <L>, but if we get ( instead, then we know that we missed display.
                 std::cout << "display is expected\n";
             }
             else if (currentExpression == "<identifier>"){ //if the issue is here, its because we did not proved a valid <identifier>
