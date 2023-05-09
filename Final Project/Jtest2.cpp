@@ -20,6 +20,8 @@
 
 // Function to print a stack
 void PrintStack(std::stack<std::string> s);
+//Function to help check for errors
+int Parse(std::stack<std::string> stackCopy, int i, std::string lan, std::vector<std::string> newWordCopy);
 std::vector<std::string> ParsingTableTokenizer(std::string s);
 
 // Predictive Parsing Table
@@ -106,26 +108,19 @@ std::string validThings[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "
 
 // Control Variable
 bool isValid = true;
-
 int main() 
 {
+    // std::vector<std::string> newWord{"program", "s", "2", "0","2", "3", "var", "p", "1", ",", "p", "2", "q", "p", "r", ":", "integer", ";", "begin", "p", "1", "=", "3", "9", ";", "p", "2", "q", "=", "4", "1", "2", ";", "p", "r", "=", "p", "1", "+", "p", "2", "q", ";", "display", "(", "p", "r", ")", ";", "p", "r", "=", "p", "1", "*", "(", "p", "2", "q", "+", "2", "*", "p", "r", ")", ";", "display", "(", "\"", "value", "=", "\"", ",", "p", "r", ")", ";", "end."};
+    std::vector<std::string> newWord{"program", "p", "2", ";", "var", "p", "1", ",", "q", "2", ":", "integer", ";", "begin", "p", "1", "=", "3", "3", "+", "(", "2", "/", "3", "*", "2", ";", "display", "(", "\"", "value", "=", "\"", ",", "p", "1", ")", ";", "end."};
+    std::stack<std::string> stack;
+    int currentIndex = 0;
 
-    // TEST 1 THAT KINDA WORKS
-    /*
-        program p2;
-        var p1, q2 : integer;
-        begin
-        p1 = 33 + (2/3*2);
-        display("value=", p1);
-        end.
-    */
-
+    // Initialize the stack
+    // stack.push("$");
+    stack.push(expressions[0]);
+    // While the stack is not empty
 
     std::vector<std::string> check{"program", "var", "integer", "begin", "end."};
-    // std::vector<std::string> newWord{"program", "p", "2", ";", "var", "p", "1", ",", "q", "2", ":", "integer", ";", "begin", "p", "1", "=", "3", "3", "+", "(", "2", "/", "3", "*", "2", ")", ";", "display", "(", "\"", "value", "=", "\"", ",", "p", "1", ")", ";", "end."};
-    std::vector<std::string> newWord{"program", "s", "2", "0","2", "3", ";", "var", "p", "1", ",", "p", "2", "q", "p", "r", ":", "integer", ";", "begin", "p", "1", "=", "3", "9", ";", "p", "2", "q", "=", "4", "1", "2", ";", "p", "r", "=", "p", "1", "+", "p", "2", "q", ";", "display", "(", "p", "r", ")", ";", "p", "r", "=", "p", "1", "*", "(", "p", "2", "q", "+", "2", "*", "p", "r", ")", ";", "display", "(", "\"", "value", "=", "\"", ",", "p", "r", ")", ";", "end."};
-
-
     // look at the reserved words in check and make sure they are written in the example program. These words only show up once and must be included
     for (auto reserved: check){
         if (std::find(newWord.begin(), newWord.end(), reserved) == newWord.end()){
@@ -134,12 +129,6 @@ int main()
         }
     }
 
-    std::stack<std::string> stack;
-    int currentIndex = 0;
-
-    // Initialize the stack
-    stack.push(expressions[0]);
-    // While the stack is not empty
     while (!stack.empty()) 
     {
         // Get the current expression
@@ -156,6 +145,7 @@ int main()
         }
 
         // Pop current expression from stack
+        std::string lastExpression = stack.top();
         stack.pop();
         std::cout << "LOOKING FOR -> " << newWord[currentIndex] << "\n";
         std::cout << "POP -> " << currentExpression << " " << currentExpression.length() << std::endl;
@@ -186,26 +176,34 @@ int main()
         std::cout << "EXPRESSION INDEX -> " << expressionIndex << " LANGUAGE INDEX -> " << languageIndex << "\n";
 
         // index out of bounds errors
-        if (expressionIndex == 23){
-            if (newWord[currentIndex] == ")" && currentExpression == ";")
-            {
-                std::cout << "(" << " is missing\n"; //we are looking for a right parenthesis, but got to a semicolon in stack. We should have done (<expr>) instead
-                return 0;
+        // if (expressionIndex == 23){
+        //         std::cout << "-------------------------------------------------------------------\n";
+        //         std::cout << "ERROR\n";
+        //         std::cout << "-------------------------------------------------------------------\n";
+        // }
+        // Index out of bounds error
+        if (languageIndex == 30 || expressionIndex == 23 || parsingTableResult.empty()){
+                languageIndex = 0;
+                 while (languageIndex < 30)
+                 {
+                    std::stack<std::string> stackCopy = stack;
+                    std::vector<std::string> newWordCopy = newWord;
+                    newWordCopy.insert(newWordCopy.begin() + currentIndex, language[languageIndex]);
+                    stackCopy.push(lastExpression);
+                    parsingTableResult = parsingTable[expressionIndex][languageIndex];
+                    if (!parsingTableResult.empty()){
+                        std::cout << "try this: " << language[languageIndex] << " with " << lastExpression << std::endl;
+                        // stackCopy.push(parsingTableResult);
+                        int max = Parse(stackCopy, currentIndex, language[languageIndex], newWordCopy);
+                        if(max == 0){
+                            std::cout << language[languageIndex] << " is missing. error\n";
+                            exit(0);
+                        }
+                        std::cout << max << std::endl;
+                    }
+                    languageIndex++;
+                }
             }
-            if (currentExpression == "(" || currentExpression == ")" || currentExpression == ":" || currentExpression == ";" || currentExpression == ","){
-                std::cout << currentExpression << " is missing\n";
-            }
-            else{
-                std::cout << "expected " << currentExpression << std::endl;
-            }
-            return 0;
-        }
-        //index out of bound error
-        if (languageIndex == 30 and newWord[currentIndex] == "var"){
-            std::cout << "; is missing" << std::endl;
-            return 0;
-        }
-
         std::cout << "PUSH -> " << "[" << expressions[expressionIndex] << ", " << language[languageIndex] << "] = " << parsingTableResult << "\n";
 
         // If the parsing table result is lambda (skip in this case), skip to the next iteration
@@ -220,28 +218,6 @@ int main()
         // If the result from the parsing table is empty, expression is invalid
         if (parsingTableResult.empty()) 
         {
-            if (currentExpression == "<type>"){
-                std::cout << "integer is expected\n";  
-            }
-            else if (currentExpression == "<L>" && (newWord[currentIndex] == "(" || newWord[currentIndex+1] == "(")){ // display is a FIRST of <L>, but if we get ( instead, then we know that we missed display.
-                std::cout << "display is expected\n";
-            }
-            else if (currentExpression == "<identifier>"){ //if the issue is here, its because we did not proved a valid <identifier>
-                std::cout << "Unknown identifier\n";
-            }
-            else if (currentExpression == "<dec-list>" && newWord[currentIndex] == ":"){  // if the issue is here, its because variable was not defined correctly
-                std::cout << "Unknown identifier\n";
-            }
-            else if (currentExpression == "<X>" && newWord[currentIndex] == "integer"){ //there should be a : between <X> and integer in stack
-                std::cout << ": is missing \n";
-            }
-            else if (currentExpression == "<term'>" && newWord[currentIndex] == "display"){
-                std::cout << "; is missing\n";
-            }
-            else if (currentExpression == "<Y>")
-            {
-                std::cout << "; is missing\n"; // I DONT THINK THIS IS RIGHT
-            }
             isValid = false;
             break;
         } 
@@ -269,10 +245,105 @@ int main()
 
         // std::cin.ignore(999, '\n');
     }
-
     (isValid) ? std::cout << " Valid Expression \n\n" : std::cout << " Invalid Expression \n\n";
 
     return 0;
+}
+
+int Parse(std::stack<std::string> stackCopy, int i, std::string lan, std::vector<std::string> newWordCopy){
+    bool nowValid = true;
+    std::cout << "-------------------------------------------------------------------\n";
+    std::cout << "WE ARE IN PARSE NOW\n";
+    std::cout << "-------------------------------------------------------------------\n";
+    std::vector<std::string> newWord = newWordCopy;
+    int currentIndex = i;
+    while (!stackCopy.empty()) 
+    {
+        // Get the current expression
+        std::string currentExpression = stackCopy.top();
+
+        // Check if the current expression is not garbage data
+        int languageSize = sizeof(validThings) / sizeof(*validThings);
+        bool isInvalidExpression = std::find(validThings, validThings + languageSize, currentExpression) == validThings + languageSize;
+        if (isInvalidExpression) 
+        {
+            std::cout << "INVALID -> " << currentExpression << "\n";
+            stackCopy.pop();
+            continue;
+        }
+
+        // Pop current expression from stack
+        stackCopy.pop();
+        std::cout << "LOOKING FOR -> " << newWord[currentIndex] << "\n";
+        std::cout << "POP -> " << currentExpression << " " << currentExpression.length() << std::endl;
+ 
+        // Check if currentExpression is the target expression
+        // If match, go to next iteration and search next character from word
+        if (currentExpression == (std::string() + newWord[currentIndex])) 
+        {
+            std::cout << "MATCH: " << newWord[currentIndex] << "\n";
+            std::cout << "Stack: -> ";
+            PrintStack(stackCopy);
+            std::cout << std::endl;
+            std::cout << std::endl;
+            currentIndex++;
+
+            // std::cin.ignore(999, '\n');
+
+            continue;
+        }
+        
+        // Read the current expression
+        int expressionIndex = std::distance(expressions, std::find(expressions, expressions + MAX_EXPRESSIONS, currentExpression));
+        int languageIndex = std::distance(language, std::find(language, language + MAX_LANGUAGE, newWord[currentIndex]));
+
+        // Fetch the value of the current expression in the parsing table
+        std::string parsingTableResult = parsingTable[expressionIndex][languageIndex];
+
+        std::cout << "EXPRESSION INDEX -> " << expressionIndex << " LANGUAGE INDEX -> " << languageIndex << "\n";
+
+        std::cout << "PUSH -> " << "[" << expressions[expressionIndex] << ", " << language[languageIndex] << "] = " << parsingTableResult << "\n";
+
+        // If the parsing table result is lambda (skip in this case), skip to the next iteration
+        if (parsingTableResult == "NULL") 
+        {
+            PrintStack(stackCopy);
+            std::cout << std::endl;
+            std::cout << std::endl;
+            continue;
+        }
+
+        // If the result from the parsing table is empty, expression is invalid
+        if (parsingTableResult.empty()) 
+        {
+            isValid = false;
+            break;
+        } 
+        else 
+        {
+            std::vector<std::string> tempVector = ParsingTableTokenizer(parsingTableResult);
+
+            if (tempVector.size() == 1) 
+            {
+                stackCopy.push(tempVector[0]);
+            }
+            else 
+            {
+                for (int i = tempVector.size()-1; i>=0; i--) 
+                {
+                    stackCopy.push(tempVector[i]);
+                }
+            }
+        }
+
+        std::cout << "Stack: -> ";
+        PrintStack(stackCopy);
+        std::cout << std::endl;
+        std::cout << std::endl;
+
+        // std::cin.ignore(999, '\n');
+    }
+    return stackCopy.size();
 }
 
 std::vector<std::string> ParsingTableTokenizer(std::string s) 
