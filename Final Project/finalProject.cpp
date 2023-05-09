@@ -1,9 +1,7 @@
 //---------------------------------------------------------------------------------------------------
 //  Group Name: Carlos Mora, Juan Sierra, Juli Nazzario
-//  Assignment: No 7 - Part 1
-//  Due Date: 3/23/2023
-//  Purpose: This program reads a predictive parsing table to trace if 
-//  an input is valid or not given a language
+//  CPSC 323 Final Project
+//  Due Date: 5/09/2023
 //---------------------------------------------------------------------------------------------------
 
 #include <iostream>
@@ -16,28 +14,50 @@
 #include <vector>
 #include <regex>
 
-// Size of the predictive parsing table, update as required
-#define MAX_EXPRESSIONS 23
-#define MAX_LANGUAGE 30
+//---------------------------------------------------------------------------------------------------
+// Aux Functions
+//---------------------------------------------------------------------------------------------------
 
-// Function to print a stack
-void PrintStack(std::stack<std::string> s);
+// Function to load the source file into a formatted vector<String> for the parser
+void FetchSourceFile();
+
+// Function to check if a token is a reserved word
+bool IsReservedWord(std::string word);
+
+// Function to Tokenize the expressions on a cell in the parsing table
 std::vector<std::string> ParsingTableTokenizer(std::string s);
 
 // Function to translate the source code to c++
 void TranslateToken(std::string token);
-std::string map = "";
+
+//---------------------------------------------------------------------------------------------------
+// Global Variables
+//---------------------------------------------------------------------------------------------------
+
+// Size of the predictive parsing table, update as required
+#define MAX_EXPRESSIONS 23
+#define MAX_LANGUAGE 30
+
+// Source File Name and Directory
+std::string filename = "finalp2.txt";
+
+// Control Variables for void TranslateToken()
+std::string translationMap = "";
 std::string tempString = "";
 std::vector<std::string> tempVariableList;
 bool startTranslating = false;
 
-// Preparing the input file
-bool isReservedWord(std::string word);
-void FetchSourceFile();
-std::string filename = "finalp2.txt";
-std::vector<std::string> newWord;
-std::string reservedWords[] = {"var", "program", "begin", "integer", "end.", "display", "value"};
+// Control variable to store the tokenized source code
+std::vector<std::string> sourceCodeTokens;
 
+// Reserved Words List
+std::string reservedWords[] = { "var", "program", "begin", "integer", "end.", "display", "value" };
+
+// Valid Code control variable
+bool isValid = true;
+
+// Output Stream for the translated C++ file
+std::ofstream output;
 
 // Predictive Parsing Table
 std::string parsingTable[MAX_EXPRESSIONS][MAX_LANGUAGE] = 
@@ -95,7 +115,8 @@ std::string expressions[MAX_EXPRESSIONS] = {
     "<type>"
 };
 
-std::string validThings[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "p", "q", "r", "s", "/", "*", "+", "-", ";", ":", "=", "(", ",", ")", "\"", "program", "begin", "display", "integer", "end.", "value", "var",
+// Valid Tokens For the Parser
+std::string validTokens[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "p", "q", "r", "s", "/", "*", "+", "-", ";", ":", "=", "(", ",", ")", "\"", "program", "begin", "display", "integer", "end.", "value", "var",
     "<program>",
     "<dec-list>",
     "<dec>",
@@ -121,27 +142,28 @@ std::string validThings[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "
     "<type>"
 };
 
-// Control Variable
-bool isValid = true;
-
-// Output files
-std::ofstream output;
+//---------------------------------------------------------------------------------------------------
+// Main Function
+//---------------------------------------------------------------------------------------------------
 
 int main() 
 {
+    // Get the source file
     FetchSourceFile();
 
-    // look at the reserved words in check and make sure they are written in the example program. These words only show up once and must be included
+    // Look at the reserved words in check and make sure they are written in the example program. These words only show up once and must be included
     for (auto reserved: reservedWords){
-        if (std::find(newWord.begin(), newWord.end(), reserved) == newWord.end()){
+        if (std::find(sourceCodeTokens.begin(), sourceCodeTokens.end(), reserved) == sourceCodeTokens.end()){
             std::cout << reserved << " is expected \n";
             return 0;
         }
     }
 
+    // Parsing Table Control Local Variables
     std::stack<std::string> stack;
     int currentIndex = 0;
 
+    // Output File name
     output.open("test_output.cpp");
 
     // Initialize the stack
@@ -154,76 +176,74 @@ int main()
         std::string currentExpression = stack.top();
 
         // Check if the current expression is not garbage data
-        int languageSize = sizeof(validThings) / sizeof(*validThings);
-        bool isInvalidExpression = std::find(validThings, validThings + languageSize, currentExpression) == validThings + languageSize;
+        int languageSize = sizeof(validTokens) / sizeof(*validTokens);
+        bool isInvalidExpression = std::find(validTokens, validTokens + languageSize, currentExpression) == validTokens + languageSize;
         if (isInvalidExpression) 
         {
-            std::cout << "INVALID -> " << currentExpression << "\n";
+            std::cout << "ERROR, INVALID -> " << currentExpression << "\n";
             stack.pop();
             continue;
         }
 
         // Pop current expression from stack
         stack.pop();
-        // std::cout << "LOOKING FOR -> " << newWord[currentIndex] << "\n";
-        // std::cout << "POP -> " << currentExpression << " " << currentExpression.length() << std::endl;
  
         // Check if currentExpression is the target expression
         // If match, go to next iteration and search next character from word
-        if (currentExpression == (std::string() + newWord[currentIndex])) 
+        if (currentExpression == (std::string() + sourceCodeTokens[currentIndex])) 
         {
-            // std::cout << "MATCH: " << newWord[currentIndex] << "\n";
-            // std::cout << "Stack: -> ";
-            // PrintStack(stack);
-            // std::cout << std::endl;
-            // std::cout << std::endl;
             currentIndex++;
 
+            // Start Translating After Reading the Source Code Filename
             if (currentExpression == "var")
+            {
                 startTranslating = true;
+            }
 
             if (startTranslating)
+            {
                 TranslateToken(currentExpression);
+            }
             
             continue;
         }
         
         // Read the current expression
         int expressionIndex = std::distance(expressions, std::find(expressions, expressions + MAX_EXPRESSIONS, currentExpression));
-        int languageIndex = std::distance(language, std::find(language, language + MAX_LANGUAGE, newWord[currentIndex]));
+        int languageIndex = std::distance(language, std::find(language, language + MAX_LANGUAGE, sourceCodeTokens[currentIndex]));
 
         // Fetch the value of the current expression in the parsing table
         std::string parsingTableResult = parsingTable[expressionIndex][languageIndex];
 
-        // index out of bounds errors
-        if (expressionIndex == 23){
-            if (newWord[currentIndex] == ")" && currentExpression == ";")
+        // Check index out of bounds errors
+        if (expressionIndex == 23)
+        {
+            if (sourceCodeTokens[currentIndex] == ")" && currentExpression == ";")
             {
                 std::cout << "(" << " is missing\n"; //we are looking for a right parenthesis, but got to a semicolon in stack. We should have done (<expr>) instead
                 return 0;
             }
-            if (currentExpression == "(" || currentExpression == ")" || currentExpression == ":" || currentExpression == ";" || currentExpression == ","){
+            if (currentExpression == "(" || currentExpression == ")" || currentExpression == ":" || currentExpression == ";" || currentExpression == ",")
+            {
                 std::cout << currentExpression << " is missing\n";
             }
-            else{
+            else
+            {
                 std::cout << "expected " << currentExpression << std::endl;
             }
             return 0;
         }
-        if (languageIndex == 30 and newWord[currentIndex] == "var"){
+        
+        if (languageIndex == 30 and sourceCodeTokens[currentIndex] == "var")
+        {
             std::cout << "; is missing" << std::endl;
             return 0;
         }
 
-        // std::cout << "EXPRESSION INDEX -> " << expressionIndex << " LANGUAGE INDEX -> " << languageIndex << "\n";
-        // std::cout << "PUSH -> " << "[" << expressions[expressionIndex] << ", " << language[languageIndex] << "] = " << parsingTableResult << "\n";
 
         // If the parsing table result is lambda (skip in this case), skip to the next iteration
         if (parsingTableResult == "NULL") 
         {
-            // PrintStack(stack);
-            // std::cout << std::endl;
-            // std::cout << std::endl;
             continue;
         }
 
@@ -233,29 +253,31 @@ int main()
             if (currentExpression == "<type>"){
                 std::cout << "integer is expected\n";
             }
-            else if (currentExpression == "<L>" && newWord[currentIndex] == "("){ // display is a FIRST of <L>, but if we get ( instead, then we know that we missed display.
+            else if (currentExpression == "<L>" && sourceCodeTokens[currentIndex] == "(" || sourceCodeTokens[currentIndex + 1] == "("){ // display is a FIRST of <L>, but if we get ( instead, then we know that we missed display.
                 std::cout << "display is expected\n";
             }
             else if (currentExpression == "<identifier>"){ //if the issue is here, its because we did not proved a valid <identifier>
                 std::cout << "Unknown identifier\n";
             }
-            else if (currentExpression == "<dec-list>" && newWord[currentIndex] == ":"){  // if the issue is here, its because variable was not defined correctly
+            else if (currentExpression == "<dec-list>" && sourceCodeTokens[currentIndex] == ":"){  // if the issue is here, its because variable was not defined correctly
                 std::cout << "Unknown identifier\n";
             }
-            else if (currentExpression == "<X>" && newWord[currentIndex] == "integer"){ //there should be a : between <X> and integer in stack
+            else if (currentExpression == "<X>" && sourceCodeTokens[currentIndex] == "integer"){ //there should be a : between <X> and integer in stack
                 std::cout << ": is missing \n";
             }
-            else if (currentExpression == "<term'>" && newWord[currentIndex] == "display"){
+            else if (currentExpression == "<term'>" && sourceCodeTokens[currentIndex] == "display"){
                 std::cout << "; is missing\n";
             }
             else if (currentExpression == "<Y>")
             {
-                std::cout << "; is missing\n"; // I DONT THINK THIS IS RIGHT
+                std::cout << "; is missing\n"; // I DONT THINK THIS IS RIGHT <
             }
 
+            // Mark code as invalid
             isValid = false;
             break;
-        } 
+        }
+        // Else, Process the Token Into the Stack of the Parser
         else 
         {
             std::vector<std::string> tempVector = ParsingTableTokenizer(parsingTableResult);
@@ -272,20 +294,59 @@ int main()
                 }
             }
         }
-
-        // std::cout << "Stack: -> ";
-        // PrintStack(stack);
-        // std::cout << std::endl;
-        // std::cout << std::endl;
-
-        // std::cin.ignore(999, '\n');
     }
 
-    (isValid) ? std::cout << "\nValid Expression \n\n" : std::cout << " Invalid Expression \n\n";
+    // Print if the expression was valid or not
+    (isValid) ? std::cout << "\nValid Expression \n\n" : std::cout << "\nInvalid Expression \n\n";
 
     return 0;
 }
 
+//---------------------------------------------------------------------------------------------------
+// Aux Functions
+//---------------------------------------------------------------------------------------------------
+
+// Function to load the source file into a formatted vector<String> for the parser
+void FetchSourceFile() 
+{
+	std::string line, word;
+	std::fstream file (filename, std::ios::in);
+
+	if (file.is_open())
+	{
+		while (getline(file, line))
+		{
+			std::stringstream str(line);
+ 
+			while (getline(str, word, ' ')) 
+            {
+                if (IsReservedWord(word)) 
+                {
+				    sourceCodeTokens.push_back(word);
+                }
+                else 
+                {
+                    for (int i=0; i<word.length(); i++) 
+                    {
+                        sourceCodeTokens.push_back(std::string() + word[i]);
+                    }
+                }
+            }
+		}
+	}
+	else 
+    {
+		std::cout<<"Could not open the file\n";
+    }
+}
+
+bool IsReservedWord(std::string word) 
+{
+    int size = sizeof(reservedWords) / sizeof(*reservedWords);
+    return std::find(reservedWords, reservedWords + size, word) != reservedWords + size;
+}
+
+// Function to Tokenize the expressions on a cell in the parsing table
 std::vector<std::string> ParsingTableTokenizer(std::string s) 
 {
     std::stringstream ss(s);
@@ -300,205 +361,183 @@ std::vector<std::string> ParsingTableTokenizer(std::string s)
     return output;
 }
 
-void PrintStack(std::stack<std::string> s)
-{
-    // If stack is empty then return
-    if (s.empty())
-        return;
-    
-    std::string x = s.top();
- 
-    // Pop the top element of the stack
-    s.pop();
- 
-    // Recursively call the function PrintStack
-    PrintStack(s);
- 
-    // Print the stack element starting from the bottom
-    std::cout << x;
- 
-    // Push the same element onto the stack to preserve the order
-    s.push(x);
-}
-
-bool isReservedWord(std::string word) 
-{
-    int size = sizeof(reservedWords) / sizeof(*reservedWords);
-    return std::find(reservedWords, reservedWords + size, word) != reservedWords + size;
-}
-
-void FetchSourceFile() 
-{
-	std::string line, word;
- 
-	std::fstream file (filename, std::ios::in);
-	if(file.is_open())
-	{
-		while(getline(file, line))
-		{
-			std::stringstream str(line);
- 
-			while(getline(str, word, ' ')) {
-                if (isReservedWord(word))
-				    newWord.push_back(word);
-                else {
-                    for (int i=0; i<word.length(); i++) {
-                        newWord.push_back(std::string() + word[i]);
-                    }
-                }
-            }
-		}
-	}
-	else
-		std::cout<<"Could not open the file\n";
-}
-
+// Function to translate the source code to c++
 void TranslateToken(std::string token) {
     std::regex r("[p-s0-9]");
 
     // WRITE MAP
-    if (map == "write") {
-        if (token == ";") {
+    if (translationMap == "write") 
+    {    
+        if (token == ";") 
+        {
             output << ";\n\t";
             tempString = "";
-            map = "";
+            translationMap = "";
         }
-        else if (token == "(") {
+        else if (token == "(") 
+        {
             output << " << ";
             tempString = "";
         }
-        else if (token == ")") {
+        else if (token == ")") 
+        {
             output << tempString;
             output << " << std::endl";
             tempString = "";
         }
-        else if (token == "\"") {
+        else if (token == "\"") 
+        {
             output << "\"";
             tempString = "";
         }
-        else if (token == "=") {
+        else if (token == "=") 
+        {
             output << "=";
             tempString = "";
         }
-        else if (token == "value") {
+        else if (token == "value") 
+        {
             output << "value";
             tempString = "";
         }
-        else if (token == ",") {
+        else if (token == ",") 
+        {
             output << " << ";
             tempString = "";
         }
-        else if (std::regex_match(token, r)) {
+        else if (std::regex_match(token, r)) 
+        {
             tempString.append(token);
         }
-
     } 
     // VARIABLE MAP
-    else if (map == "var") {
-        if (token == ";") {
+    else if (translationMap == "var") 
+    {
+        if (token == ";") 
+        {
             output << ";\n\t";
             tempString = "";
-            map = "";
+            translationMap = "";
         }
-        else if (token == ",") {
+        else if (token == ",") 
+        {
             tempVariableList.push_back(tempString);
             tempVariableList.push_back(", ");
             tempString = "";
         }
-        else if (token == ":") {
+        else if (token == ":") 
+        {
             tempVariableList.push_back(tempString);
             tempString = "";
         }
-        else if (token == "integer") {
+        else if (token == "integer") 
+        {
             output << "int ";
 
-            for (int i=0; i<tempVariableList.size(); i++) {
+            for (int i=0; i<tempVariableList.size(); i++) 
+            {
                 output << tempVariableList[i];
             }
 
             tempString = "";
         }
-        else if (std::regex_match(token, r)) {
+        else if (std::regex_match(token, r)) 
+        {
             tempString.append(token);
         }
     }
-    else {
-        if (token == "var") { // IGNORE -> program <identifier> ; since it is useless for the c++ translation
+    else 
+    {
+        // IGNORE -> program <identifier> ; since it is useless for the c++ translation
+        if (token == "var") 
+        {
             output << "#include <iostream>\n\nint main() {\n\t";
-            map = "var";
+            translationMap = "var";
         } 
-        else if (token == ";") {
+        else if (token == ";") 
+        {
             output << tempString;
             output << ";\n\t";
             tempString = "";
         } 
-        else if (token == ":") {
+        else if (token == ":") 
+        {
             output << tempString;
             output << " : ";
             tempString = "";
         }
-        else if (token == ",") {
+        else if (token == ",") 
+        {
             output << tempString;
             output << ", ";
             tempString = "";
         }
-        else if (token == "integer") {
+        else if (token == "integer") 
+        {
             output << "integer";
             tempString = "";
         }
-        else if (token == "begin") {
-            // SKIP
-        }
-        else if (token == "=") {
+        else if (token == "=") 
+        {
             output << tempString;
             output << " = ";
             tempString = "";
         }
-        else if (token == "+") {
+        else if (token == "+") 
+        {
             output << tempString;
             output << " + ";
             tempString = "";
         }
-        else if (token == "-") {
+        else if (token == "-") 
+        {
             output << tempString;
             output << " - ";
             tempString = "";
         }
-        else if (token == "*") {
+        else if (token == "*") 
+        {
             output << tempString;
             output << " * ";
             tempString = "";
         }
-        else if (token == "/") {
+        else if (token == "/") 
+        {
             output << tempString;
             output << " / ";
             tempString = "";
         }
-        else if (token == "(") {
+        else if (token == "(") 
+        {
             output << tempString;
             output << "(";
             tempString = "";
         }
-        else if (token == ")") {
+        else if (token == ")") 
+        {
             output << tempString;
             output << ")";
             tempString = "";
         }
-        else if (token == ")") {
+        else if (token == ")") 
+        {
             output << tempString;
             output << ")";
             tempString = "";
         }
-        else if (token == "display") {
+        else if (token == "display") 
+        {
             output << "std::cout";
             tempString = "";
-            map = "write";
+            translationMap = "write";
         }
-        else if (token == "end.") {
+        else if (token == "end.") 
+        {
             output << "\n\treturn 0;\n}";
             tempString = "";
         }
-        else if (std::regex_match(token, r)) {
+        else if (std::regex_match(token, r)) 
+        {
             tempString.append(token);
         }
     }
