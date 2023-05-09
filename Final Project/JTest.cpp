@@ -40,7 +40,7 @@ std::string parsingTable[MAX_EXPRESSIONS][MAX_LANGUAGE] =
 /* <term> */        {"<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "<factor> <term'>", "", "", "<factor> <term'>", "<factor> <term'>", "", "", "", "<factor> <term'>", "", "", "", "", "", "", "", ""}, // <term>
 /* <term'> */       {"", "", "", "", "", "", "", "", "", "", "", "", "", "", "/ <factor> <term'>", "* <factor> <term'>", "NULL", "NULL", "NULL", "", "", "", "", "NULL", "", "", "", "", "", ""}, // <term'>
 /* <factor> */      {"<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<number>", "<identifier>", "<identifier>", "<identifier>", "<identifier>", "", "", "<number>", "<number>", "", "", "", "( <expr> )", "", "", "", "", "", "", "", ""}, // <factor>
-/* <number> */      {"<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "<Y>", "", "", "", "", "", "", "<sign> <digit> <Y>", "<sign> <digit> <Y>", "", "", "", "", "", "", "", "", "", "", "", ""}, // <number>
+/* <number> */      {"<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "", "", "", "", "", "", "<sign> <digit> <Y>", "<sign> <digit> <Y>", "", "", "", "", "", "", "", "", "", "", "", ""}, // <number>
 /* <Y> */           {"<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "<digit> <Y>", "", "", "", "", "NULL", "NULL", "NULL", "NULL", "NULL", "", "", "", "", "NULL", "", "", "", "", "", ""}, // <Y>
 /* <sign> */        {"NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "", "", "", "", "", "", "+", "-", "", "", "", "", "", "", "", "", "", "", "", ""}, // <sign>
 /* <identifier> */  {"", "", "", "", "", "", "", "", "", "", "<letter> <X>", "<letter> <X>", "<letter> <X>", "<letter> <X>", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""}, // <identifier>
@@ -121,32 +121,23 @@ int main()
     */
 
 
-    std::vector<std::string> check{"program", "var", "integer", "begin", "display", "value", "end."};
-    std::vector<std::string> newWord{"program", "p", "2", ";", "var", "p", "1", ",", "q", "2", ":", "integer", ";", "begin", "p", "1", "=", "3", "3", "+", "(", "2", "/", "3", "*", "2", ")", ";","display", "(", "\"", "value", "=", "\"", ",", "p", "1", ")", ";", "end."};
+    std::vector<std::string> check{"program", "var", "integer", "begin", "end."};
     // std::vector<std::string> newWord{"program", "p", "2", ";", "var", "p", "1", ",", "q", "2", ":", "integer", ";", "begin", "p", "1", "=", "3", "3", "+", "(", "2", "/", "3", "*", "2", ")", ";", "display", "(", "\"", "value", "=", "\"", ",", "p", "1", ")", ";", "end."};
+    std::vector<std::string> newWord{"program", "s", "2", "0","2", "3", ";", "var", "p", "1", ",", "p", "2", "q", "p", "r", ":", "integer", ";", "begin", "p", "1", "=", "3", "9", ";", "p", "2", "q", "=", "4", "1", "2", ";", "p", "r", "=", "p", "1", "+", "p", "2", "q", ";", "display", "(", "p", "r", ")", ";", "p", "r", "=", "p", "1", "*", "(", "p", "2", "q", "+", "2", "*", "p", "r", ")", ";", "display", "(", "\"", "value", "=", "\"", ",", "p", "r", ")", ";", "end."};
 
-    if (newWord[0] != "program")
-    {
-        std::cout << "program expected \n" << std::endl;
-        return 0;
-    }
-    if (newWord[newWord.size() - 1] != "end."){
-        std::cout << "end. expected \n";
-        return 0; 
-    }
 
-    // for (auto checker: check){
-    //     if (std::find(newWord.begin(), newWord.end(), checker) == newWord.end()){
-    //         std::cout << checker << " is expected \n";
-    //         return 0;
-    //     }
-    // }
+    // look at the reserved words in check and make sure they are written in the example program. These words only show up once and must be included
+    for (auto reserved: check){
+        if (std::find(newWord.begin(), newWord.end(), reserved) == newWord.end()){
+            std::cout << reserved << " is expected \n";
+            return 0;
+        }
+    }
 
     std::stack<std::string> stack;
     int currentIndex = 0;
 
     // Initialize the stack
-    // stack.push("$");
     stack.push(expressions[0]);
     // While the stack is not empty
     while (!stack.empty()) 
@@ -194,8 +185,14 @@ int main()
 
         std::cout << "EXPRESSION INDEX -> " << expressionIndex << " LANGUAGE INDEX -> " << languageIndex << "\n";
 
+        // index out of bounds errors
         if (expressionIndex == 23){
-            if (currentExpression == "(" || currentExpression == ")" || currentExpression == ":" || currentExpression == ";"){
+            if (newWord[currentIndex] == ")" && currentExpression == ";")
+            {
+                std::cout << "(" << " is missing\n"; //we are looking for a right parenthesis, but got to a semicolon in stack. We should have done (<expr>) instead
+                return 0;
+            }
+            if (currentExpression == "(" || currentExpression == ")" || currentExpression == ":" || currentExpression == ";" || currentExpression == ","){
                 std::cout << currentExpression << " is missing\n";
             }
             else{
@@ -207,6 +204,7 @@ int main()
             std::cout << "; is missing" << std::endl;
             return 0;
         }
+
         std::cout << "PUSH -> " << "[" << expressions[expressionIndex] << ", " << language[languageIndex] << "] = " << parsingTableResult << "\n";
 
         // If the parsing table result is lambda (skip in this case), skip to the next iteration
@@ -224,17 +222,24 @@ int main()
             if (currentExpression == "<type>"){
                 std::cout << "integer is expected\n";
             }
-            else if (currentExpression == "<L>" && newWord[currentIndex] == "("){
+            else if (currentExpression == "<L>" && newWord[currentIndex] == "("){ // display is a FIRST of <L>, but if we get ( instead, then we know that we missed display.
                 std::cout << "display is expected\n";
             }
-            else if (currentExpression == "<identifier>"){
+            else if (currentExpression == "<identifier>"){ //if the issue is here, its because we did not proved a valid <identifier>
                 std::cout << "Unknown identifier\n";
             }
-            else if (currentExpression == "<dec-list>" && newWord[currentIndex] == ":"){
+            else if (currentExpression == "<dec-list>" && newWord[currentIndex] == ":"){  // if the issue is here, its because variable was not defined correctly
                 std::cout << "Unknown identifier\n";
             }
-            else if (currentExpression == "<X>" && newWord[currentIndex] == "integer"){ //there should be a : between X and integer 
+            else if (currentExpression == "<X>" && newWord[currentIndex] == "integer"){ //there should be a : between <X> and integer in stack
                 std::cout << ": is missing \n";
+            }
+            else if (currentExpression == "<term'>" && newWord[currentIndex] == "display"){
+                std::cout << "; is missing\n";
+            }
+            else if (currentExpression == "<Y>")
+            {
+                std::cout << "; is missing\n"; // I DONT THINK THIS IS RIGHT
             }
             isValid = false;
             break;
