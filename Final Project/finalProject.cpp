@@ -51,7 +51,7 @@ bool startTranslating = false;
 std::vector<std::string> sourceCodeTokens;
 
 // Reserved Words List
-std::string reservedWords[] = { "var", "program", "begin", "integer", "end.", "display", "value" };
+std::string reservedWords[] = { "var", "program", "begin", "integer", "end.", "display", "\"value=\"," };
 std::string requiredWords[] = { "var", "program", "begin", "integer", "end." };
 
 // Valid Code control variable
@@ -321,7 +321,15 @@ void FetchSourceFile()
  
 			while (getline(str, word, ' ')) 
             {
-                if (IsReservedWord(word)) 
+
+                if (word == "\"value=\",") {
+				    sourceCodeTokens.push_back("\"");
+				    sourceCodeTokens.push_back("value");
+				    sourceCodeTokens.push_back("=");
+				    sourceCodeTokens.push_back("\"");
+				    sourceCodeTokens.push_back(",");;
+                }
+                else if (IsReservedWord(word)) 
                 {
 				    sourceCodeTokens.push_back(word);
                 }
